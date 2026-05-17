@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Product } from '../../shared/types';
-import { searchProducts } from '../utils/api';
+import { collectAllProducts, processProducts } from '../services/mockData';
 
 interface SearchStore {
   products: Product[];
@@ -32,14 +32,11 @@ export const useSearchStore = create<SearchStore>((set) => ({
   search: async (keyword: string) => {
     set({ isLoading: true, error: null, keyword });
     try {
-      const data = await searchProducts(keyword);
-      if (data.success) {
-        set({ products: data.data, isLoading: false });
-      } else {
-        set({ error: data.error || '搜索失败', isLoading: false });
-      }
+      const rawProducts = await collectAllProducts(keyword);
+      const processedProducts = processProducts(rawProducts);
+      set({ products: processedProducts, isLoading: false });
     } catch (err) {
-      set({ error: '网络错误', isLoading: false });
+      set({ error: '搜索出错了', isLoading: false });
     }
   },
   
